@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "lighthouse": "^8.0.0",
+    "yargs": "^16.2.0"
+  }
+}
