@@ -7,11 +7,10 @@ const { computeMedianRun } = require('lighthouse/lighthouse-core/lib/median-run.
 
 const argv = yargs(hideBin(process.argv))
   .command('run <url>', 'run lightouse cli and compute median', (yargs) => {
-    return yargs
-      .positional('url', {
-        describe: 'Url for which lightouse will run',
-        require: true
-      })
+    yargs.positional('url', {
+        describe: 'url for which lightouse will run',
+        type: 'string'
+    })
   })
   .option('mobileCounter', {
     alias: 'm',
@@ -50,46 +49,43 @@ const argv = yargs(hideBin(process.argv))
     default: './node_modules/lighthouse/lighthouse-core/config/lr-desktop-config.js'
   })
   .argv;
-
-// const results = [];
-// const resultsDesktop = [];
-// const lowHigh = [];
-// const lowHighDesktop = [];
-
-// lowHigh[0] = 100;
-// lowHigh[1] = 0;
-// lowHighDesktop[0] = 100;
-// lowHighDesktop[1] = 0;
+  
+let scores = { 
+  desktop: { output: [], lowest: 100, highest: 0}, 
+  mobile: { output: [], lowest: 100, highest: 0}
+};
 
 if (argv.mobileCounter) {
   run(argv.mobileCounter, argv.mobileConfigPath, false);
 }
 
 if (argv.desktopCounter) {
-  run(argv.desktopCounter, argv.desktopConfigPath, false);
+  run(argv.desktopCounter, argv.desktopConfigPath, false, 'desktop');
 }
 
 if (argv.report) {
   run(1, argv.mobileConfigPath, true);
 }
 
-function run(counter, configPath, isReport) {
-  let output = 'json';
+results();
+
+function run(counter, configPath, isReport, platform = 'mobile') {
+  let fileName;
+  let outputPath;
 
   if (isReport) {
-    let fileName = createReportName();
-    let output = 'html';
-    let outputPath = `./report/${fileName}.html`;
+    fileName = createReportName();
+    outputPath = `./report/${fileName}.html`;
   }
 
   for (let i = 0; i < counter; i++) {
-    console.log(`Running Lighthouse attempt #${i + 1}...`);
+    console.log(`Running Lighthouse attempt #${i + 1} for ${platform}...`);
     const {status = -1, stdout, stderr} = spawnSync('node', [
         lighthouseCli,
         argv.url,
-        `--output=${output}`, 
+        isReport ? `--output=html` : `--output=json`,
         `--config-path=${configPath}`,
-        isReport ? `--output-path=${outputPath}` : ``
+        isReport ? `--output-path=${outputPath}` : ` `
       ],
       {
         maxBuffer: argv.maxBuffer
@@ -102,13 +98,22 @@ function run(counter, configPath, isReport) {
       continue;
     }
 
-    let parsed = JSON.parse(stdout);
-    console.log('Run score: ' + parsed.categories.performance.score * 100);
+    if (isReport) {
+      continue;
+    }
 
-    lowHigh[0] = parsed.categories.performance.score < lowHigh[0] ? parsed.categories.performance.score : lowHigh[0];
-    lowHigh[1] = parsed.categories.performance.score > lowHigh[1] ? parsed.categories.performance.score : lowHigh[1];
-    
-    results.push(parsed);
+    let parsed = JSON.parse(stdout);
+    console.log('Run score: ' + parsed.categories.performance.score * 100, '\n');
+
+    if (platform !== 'mobile') {
+      scores.desktop.lowest = parsed.categories.performance.score < scores.desktop.lowest ? parsed.categories.performance.score : scores.desktop.lowest;
+      scores.desktop.highest = parsed.categories.performance.score > scores.desktop.highest ? parsed.categories.performance.score : scores.desktop.highest;
+      scores.desktop.output.push(parsed);
+    } else {
+      scores.mobile.lowest = parsed.categories.performance.score < scores.mobile.lowest ? parsed.categories.performance.score : scores.mobile.lowest;
+      scores.mobile.highest = parsed.categories.performance.score > scores.mobile.highest ? parsed.categories.performance.score : scores.mobile.highest;
+      scores.mobile.output.push(parsed);
+    }
   }
 }
 
@@ -124,20 +129,22 @@ function createReportName() {
   return reportName;
 }
 
-// if (results.length) {
-//   const median = computeMedianRun(results);
+function results() {
+  if (scores.mobile.output.length) {
+    const median = computeMedianRun(scores.mobile.output);
 
-//   console.log('Lowest and highest mobile score:', lowHigh[0] * 100 + ' - ' + lowHigh[1] * 100);
-//   console.log('Median mobile performance score was', median.categories.performance.score * 100);
-// }
+    console.log('Lowest and highest mobile score:', scores.mobile.lowest * 100 + ' - ' + scores.mobile.highest * 100);
+    console.log('Median mobile performance score:', median.categories.performance.score * 100, '\n');
+  }
 
-// if (resultsDesktop.length) {
-//   const medianDesktop = computeMedianRun(resultsDesktop);
+  if (scores.desktop.output.length) {
+    const medianDesktop = computeMedianRun(scores.desktop.output);
 
-//   console.log('Lowest and highest desktop score:', lowHighDesktop[0] + ' - ' + lowHighDesktop[1]);
-//   console.log('Median desktop performance score was', medianDesktop.categories.performance.score * 100);
-// }
+    console.log('Lowest and highest desktop score:', scores.desktop.lowest * 100 + ' - ' + scores.desktop.highest * 100);
+    console.log('Median desktop performance score:', medianDesktop.categories.performance.score * 100, '\n');
+  }
 
-// if (argv.r) {
-//   console.log('Report generated to `./report/<HOST>_<DATE>.report.html`');
-// }
+  if (argv.r) {
+    console.log('Report generated to `./report/<HOST>_<DATE>.html`');
+  }
+}

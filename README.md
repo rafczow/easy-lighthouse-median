@@ -9,10 +9,8 @@ https://github.com/GoogleChrome/lighthouse/blob/master/docs/variability.md
 ## Quick start
 
 ### Requirements
-- Node
+- Node (Lighthouse requires Node 12 LTS (12.x) or later.)
 - NPM
-
-    Lighthouse requires Node 12 LTS (12.x) or later.
 
 ### Install dependencies:
 ```
@@ -28,11 +26,13 @@ By default lighthouse will run 5 times for each config (mobile, desktop) and the
 
 ## CLI options
 ```
-$ node median.js --help
-median.js [command]
+$ node median.js run --help                                    
+median.js run <url>
 
-Commands:
-  median.js run <url>  run lightouse cli and compute median
+run lightouse cli and compute median
+
+Positionals:
+  url  url for which lightouse will run                      [string] [required]
 
 Options:
       --help                                Show help                  [boolean]
@@ -58,7 +58,6 @@ Options:
       --config-desktop,                     Set custom config path for desktop
       --desktopConfigPath                   runs.             [string] [default:
         "./node_modules/lighthouse/lighthouse-core/config/lr-desktop-config.js"]
-
 ```
 
 ## Configuration
