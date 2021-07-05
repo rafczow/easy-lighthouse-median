@@ -2,6 +2,49 @@
 
 Using this script you can easly run Lighthouse report few times and get median result. 
 
+Example output:
+```
+Running Lighthouse attempt #1 for mobile...
+Run score: 19 
+
+Running Lighthouse attempt #2 for mobile...
+Run score: 21 
+
+Running Lighthouse attempt #3 for mobile...
+Run score: 21 
+
+Running Lighthouse attempt #4 for mobile...
+Run score: 19 
+
+Running Lighthouse attempt #5 for mobile...
+Run score: 23 
+
+Running Lighthouse attempt #1 for desktop...
+Run score: 61 
+
+Running Lighthouse attempt #2 for desktop...
+Run score: 63 
+
+Running Lighthouse attempt #3 for desktop...
+Run score: 64 
+
+Running Lighthouse attempt #4 for desktop...
+Run score: 68 
+
+Running Lighthouse attempt #5 for desktop...
+Run score: 57.99999999999999 
+
+Running Lighthouse for report... 
+
+Lowest and highest mobile score: 19 - 23
+Median mobile performance score: 19 
+
+Lowest and highest desktop score: 57.99999999999999 - 68
+Median desktop performance score: 63 
+
+Report generated to `./report/<HOST>_<DATE>.html`
+```
+
 Code is based on example from original docs:
 https://github.com/GoogleChrome/lighthouse/blob/master/docs/variability.md
 

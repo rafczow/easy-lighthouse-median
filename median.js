@@ -79,7 +79,12 @@ function run(counter, configPath, isReport, platform = 'mobile') {
   }
 
   for (let i = 0; i < counter; i++) {
-    console.log(`Running Lighthouse attempt #${i + 1} for ${platform}...`);
+    if (isReport) {
+      console.log(`Running Lighthouse for report...`, '\n');
+    } else {
+      console.log(`Running Lighthouse attempt #${i + 1} for ${platform}...`);
+    }
+    
     const {status = -1, stdout, stderr} = spawnSync('node', [
         lighthouseCli,
         argv.url,
